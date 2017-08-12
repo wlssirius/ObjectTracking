@@ -39,3 +39,6 @@ public:
 	CvRect generateGroundRegion(Mat mGroundSky); // Generate the ground region
 	*/
 };
+
+
+CvPoint findCenter(const IplImage * Image, CvSeq* contour);
