@@ -4,11 +4,12 @@
 
 #pragma once
 
-#include "cv.h"
+#include "opencv2/opencv.hpp"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/ml/ml.hpp>
 #include <math.h>
+#include <vector>
 #include "target.h"
 
 #include <fstream>
@@ -23,17 +24,15 @@ using namespace std;
 
 #define DISPLAY_RESULT true;
 
-#define FILE_NAME "img\\%04d.jpg"
+#define FILE_NAME "..\\img\\%04d.jpg"
 
 class Tracking //Class for the tracking procedure
 {
 private:
-	Target target[10];	// Tracking targets
-	Target tempTarget[10]; // Detected targets in current frame
-	int targetNum ;  // Number of tracking targets 
-	int tempTargetNum ; // Number of detected targets in current frame
-	CvCapture* m_pSrcCapture; 
-	CvVideoWriter* m_pWriterTracking;
+	vector<Target> target;	// Tracking targets
+	vector<Target> tempTarget; // Detected targets in current frame
+	VideoCapture m_pVideoCapture;
+	VideoWriter* m_pWriterTracking;
 	Mat m_mSrcFrame3;
 	Mat m_mSrcFrame;
 	Mat m_mDiffGaussian;
@@ -42,7 +41,6 @@ private:
 public:
 	Tracking();
 	~Tracking() ;
-	int DisplayHelp();
 	int DisplayResult(int nTime);
 	int GetFrameNum();
 
@@ -53,11 +51,10 @@ public:
 	int LoadSequence(char* pcFileName);
 	int LoadNextFrame();
 
-	int TrainObject(CvSVM *svm);
 	int ProcessImage();
 	int DetectTarget();
 	int TrackTarget();
 };
 
 
-CvPoint findCenter(const IplImage * Image, CvSeq* contour);
+Point findCenter(Mat Image, vector<Point> contour);

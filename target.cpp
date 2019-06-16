@@ -10,24 +10,38 @@ Target::Target()//Class for the tracking targets
 	x = -1;
 	y = -1;
 	LastTrackingFrame = -1;
-	Kalman = cvCreateKalman(4, 2, 0);
-	const CvMat* prediction = cvKalmanPredict(Kalman, 0);
-	//cout<<"predict"<<prediction->data.fl[0]<<" "<<prediction->data.fl[1]<<endl;
-	CvMat* process_noise = cvCreateMat(4, 1, CV_32FC1);
-	CvRNG rng = cvRNG(-1);
+	kalman = new KalmanFilter(4, 2, 0); 
+	Mat state(4, 1, CV_32F); /* (phi, delta_phi) */
+	Mat processNoise(4, 1, CV_32F);
+	Mat measurement = Mat::zeros(2, 1, CV_32F);
+	char code = (char)-1;
 
-	float a[4][4] = {//transition matrix
-		1,0,1,0,
-		0,1,0,1,
-		0,0,1,0,
-		0,0,0,1
-	};
-	memcpy(Kalman->transition_matrix->data.fl, a, sizeof(a));
-	cvSetIdentity(Kalman->measurement_matrix, cvRealScalar(1));
-	cvSetIdentity(Kalman->process_noise_cov, cvRealScalar(1e-5));
-	cvSetIdentity(Kalman->measurement_noise_cov, cvRealScalar(1e-1));
-	cvSetIdentity(Kalman->error_cov_post, cvRealScalar(1));
-	cvReleaseMat(&process_noise);
+	randn(state, Scalar::all(0), Scalar::all(0.1));
+	kalman->transitionMatrix = (Mat_<float>(4, 4) <<
+		1, 0, 1, 0,
+		0, 1, 0, 1,
+		0, 0, 1, 0,
+		0, 0, 0, 1);
+	setIdentity(kalman->measurementMatrix);
+	setIdentity(kalman->processNoiseCov, Scalar::all(1e-5));
+	setIdentity(kalman->measurementNoiseCov, Scalar::all(1e-1));
+	setIdentity(kalman->errorCovPost, Scalar::all(1));
+
+	randn(kalman->statePost, Scalar::all(0), Scalar::all(0.1));
+}
+
+Target::Target(const Target & target)
+{
+	x = target.x;
+	y = target.y;
+	width = target.width;
+	height = target.height;
+	LastTrackingFrame = target.LastTrackingFrame;
+	kalman = target.kalman;
+}
+
+Target::~Target()
+{
 }
 
 bool Target::sameTarget(Target newTarget)
@@ -36,9 +50,8 @@ bool Target::sameTarget(Target newTarget)
 	int newArea = newTarget.width*newTarget.height;
 	if (5 * area < newArea || area>5 * newArea)
 		return false;
-	const CvMat* prediction;
-	prediction = cvKalmanPredict(Kalman, 0);
-	Point predictCenter(prediction->data.fl[0], prediction->data.fl[1]);
+	Mat prediction = kalman->predict();
+	Point predictCenter(prediction.at<float>(0), prediction.at<float>(1));
 	if (predictCenter.x > newTarget.x&&predictCenter.x < (newTarget.x + newTarget.width) && predictCenter.y>newTarget.y&&predictCenter.y < (newTarget.y + newTarget.height))
 	{
 		return true;
@@ -47,7 +60,8 @@ bool Target::sameTarget(Target newTarget)
 	{
 		return true;
 	}
-	else return false;
+	
+	return false;
 }
 
 

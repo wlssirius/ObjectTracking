@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "cv.h"
+#include "opencv2/opencv.hpp"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/ml/ml.hpp>
@@ -29,8 +29,9 @@ public:
 
 public:
 	Target();
-	~Target() {};
+	Target(const Target& target);
+	~Target();
 	Point center() { return Point((x + width / 2), (y + height / 2)); }; //Return the center position of the target
-	CvKalman* Kalman;	//Kalman filter of the center position of the target bounding box.
+	KalmanFilter* kalman;	//Kalman filter of the center position of the target bounding box.
 };
 

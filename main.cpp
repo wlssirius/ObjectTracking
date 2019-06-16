@@ -23,7 +23,7 @@ int main()
 		testTracking.WriteResultVideo();
 	}
 
-	testTracking.ReleaseResultVideo();
+	//testTracking.ReleaseResultVideo();
 	
 	return 0;
 }
